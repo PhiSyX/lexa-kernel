@@ -24,12 +24,32 @@ pub trait ApplicationStartupExtension
 	fn run(self);
 }
 
+/// Interface de lancement d'application.
+pub trait ApplicationStartupCallableExtension
+	: Sized
+{
+	type Callable;
+
+	/// Démarre l'application.
+	fn run(self, callable: Self::Callable);
+}
+
 /// Interface de lancement d'application asynchrone.
 pub trait AsyncApplicationStartupExtension
 	: Sized
 {
 	/// Démarre l'application.
 	async fn run(self);
+}
+
+/// Interface de lancement d'application.
+pub trait AsyncApplicationStartupCallableExtension
+	: Sized
+{
+	type Callable;
+
+	/// Démarre l'application.
+	async fn run(self, callable: Self::Callable);
 }
 
 // -------------- //
@@ -97,5 +117,37 @@ where
 		}
 
 		self.application_adapter.run().await;
+	}
+}
+
+impl<A, E, C, CB> ApplicationStartupCallableExtension for Kernel<A, E, C>
+where
+	A: ApplicationStartupCallableExtension<Callable = CB>,
+{
+	type Callable = A::Callable;
+
+	fn run(self, callable: Self::Callable)
+	{
+		if self.settings.startup_info {
+			self.display_startup_information();
+		}
+
+		self.application_adapter.run(callable);
+	}
+}
+
+impl<A, E, C, CB> AsyncApplicationStartupCallableExtension for Kernel<A, E, C>
+where
+	A: AsyncApplicationStartupCallableExtension<Callable = CB>,
+{
+	type Callable = A::Callable;
+
+	async fn run(self, callable: Self::Callable)
+	{
+		if self.settings.startup_info {
+			self.display_startup_information();
+		}
+
+		self.application_adapter.run(callable).await;
 	}
 }
