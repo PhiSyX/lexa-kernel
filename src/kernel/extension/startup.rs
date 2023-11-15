@@ -50,8 +50,12 @@ impl<A, E, C> Kernel<A, E, C>
 		println!();
 
 		println!(
+			"\tRépertoire racine du project: {:?}",
+			self.settings.directory.project_root()
+		);
+		println!(
 			"\tRépertoire racine de l'application: {:?}",
-			self.settings.directory.root()
+			self.settings.directory.application_root()
 		);
 		println!(
 			"\tRépertoire de la configuration: {:?}",

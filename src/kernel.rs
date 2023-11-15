@@ -80,6 +80,13 @@ where
 
 impl<A, E, C> Kernel<A, E, C>
 {
+	/// Définit le répertoire racine du projet.
+	pub fn define_project_directory(mut self, dir: impl Into<path::PathBuf>) -> Self
+	{
+		self.settings.directory.set_project_directory(dir);
+		self
+	}
+
 	/// Définit un répertoire de configuration.
 	pub fn define_config_directory(mut self, dir: impl Into<path::PathBuf>) -> Self
 	{
