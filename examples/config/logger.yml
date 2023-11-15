@@ -1,0 +1,8 @@
+# preset: default
+colorized: true
+max_level: "DEBUG"
+target_filters:
+  - "*your-framework*"
+  - "*your-sdk*"
+  - "logger_config*" # for this example
+timestamp: true
