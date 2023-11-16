@@ -13,7 +13,9 @@ pub struct AnyApplicationAdapter;
 
 impl ApplicationAdapterInterface for AnyApplicationAdapter
 {
-	fn new() -> Self
+	type Settings = ();
+
+	fn new(_: Self::Settings) -> Self
 	{
 		Self
 	}

@@ -18,7 +18,7 @@ use std::path;
 use self::settings::KernelSettings;
 use crate::logger::signal::LoggerSignal;
 use crate::process::ProcessMode;
-use crate::ApplicationAdapterInterface;
+use crate::{ApplicationAdapterInterface, ApplicationAdapterSettingsInterface};
 
 // --------- //
 // Structure //
@@ -31,7 +31,7 @@ pub struct Kernel<ApplicationAdapter, UserEnv = (), UserCLI = ()>
 	/// Version de l'application.
 	application_version: ApplicationVersion,
 	/// Application Adapter.
-	application_adapter: ApplicationAdapter,
+	pub application_adapter: ApplicationAdapter,
 	/// Paramètres du kernel.
 	settings: KernelSettings,
 	/// Les variables d'environnent.
@@ -69,12 +69,26 @@ where
 		Self {
 			application_name,
 			application_version,
-			application_adapter: ApplicationAdapter::new(),
+			application_adapter: Self::make_adapter(&settings),
 			settings,
 			env_vars: Default::default(),
 			cli_args: Default::default(),
 			logger_signal,
 		}
+	}
+
+	fn make_adapter(settings: &KernelSettings) -> ApplicationAdapter
+	{
+		let application_adapter_settings_filename = <
+			ApplicationAdapter::Settings as ApplicationAdapterSettingsInterface
+		>::FILENAME;
+
+		let application_adapter_settings = fetch_config(
+			application_adapter_settings_filename,
+			&settings,
+		).unwrap_or_default();
+
+		ApplicationAdapter::new(application_adapter_settings)
 	}
 }
 
@@ -88,60 +102,74 @@ impl<A, E, C> Kernel<A, E, C>
 	}
 
 	/// Définit un répertoire de configuration.
+	///
+	/// NOTE: lorsque le répertoire de configuration est redéfinit,
+	/// l'application adapter est recrée.
 	pub fn define_config_directory(mut self, dir: impl Into<path::PathBuf>) -> Self
+	where
+		A: ApplicationAdapterInterface,
 	{
 		self.settings.directory.set_config_directory(dir);
+		self.application_adapter = Self::make_adapter(&self.settings);
 		self
 	}
 
 	/// Définit le type d'extension à récupérer pour les fichiers de
 	/// configurations de l'application.
-	pub fn define_loader_extension(
-		mut self,
-		loader_extension: impl Into<lexa_fs::Extension>
-	) -> Self
+	pub fn define_loader_extension(mut self, loader_extension: impl Into<lexa_fs::Extension>) -> Self
 	{
 		self.settings.loader_extension = loader_extension.into();
 		self
 	}
 
-	/// Désérialise un fichier de configuration situé dans son répertoire de
-	/// configuration en une structure de données en fonction du mode
-	/// d'exécution.
-	///
-	/// À savoir que **par défaut** :
-	///
-	///     1) Le répertoire de configuration se trouve à la racine du
-	///     projet `config/`
-	///
-	///     2) Le fichier de configuration du logger se trouve dans :
-	///
-	///         2.1) En local : `config/<config_name>.<EXT>`.
-	///         2.2) En dev   : `config/dev/<config_name>.<EXT>`.
-	///         2.3) En prod  : `config/prod/<config_name>.<EXT>`.
-	///         2.4) En test  : `config/test/<config_name>.<EXT>`.
-	///
-	///     3) L'extension <EXT> utilisée pour ce fichier de configuration est
-	///        le `yml`. Cette extension peut être modifiée dans les paramètres
-	///        de la configuration.
-	pub fn fetch_config<O>(&self, config_name: &'static str) -> std::io::Result<O>
+	/// Voir [fetch_config()]
+	pub fn fetch_config<O>(&self, config_name: impl AsRef<str> + 'static) -> std::io::Result<O>
 	where
 		O: serde::de::DeserializeOwned,
 	{
-		let filepath = match self.settings.process_mode {
-			| ProcessMode::LOCAL => String::from(config_name),
-			| ProcessMode::DEVELOPMENT => String::from("dev/{config_name}"),
-			| ProcessMode::PRODUCTION => String::from("prod/{config_name}"),
-			| ProcessMode::TEST => String::from("test/{config_name}"),
-		};
+		fetch_config(config_name, &self.settings)
+	}
+}
 
-		if let Some(config_directory) = self.settings.directory.config() {
-			lexa_fs::load(config_directory, filepath, self.settings.loader_extension)
-		} else {
-			Err(std::io::Error::new(
-				std::io::ErrorKind::NotFound,
-				"Le répertoire de configuration n'existe pas.",
-			))
-		}
+// -------- //
+// Fonction //
+// -------- //
+
+/// Désérialise un fichier de configuration situé dans son répertoire de
+/// configuration en une structure de données en fonction du mode d'exécution.
+///
+/// À savoir que **par défaut** :
+///
+///     1) Le répertoire de configuration se trouve à la racine du
+///     projet `config/`
+///
+///     2) Le fichier de configuration du logger se trouve dans :
+///
+///         2.1) En local : `config/<config_name>.<EXT>`.
+///         2.2) En dev   : `config/dev/<config_name>.<EXT>`.
+///         2.3) En prod  : `config/prod/<config_name>.<EXT>`.
+///         2.4) En test  : `config/test/<config_name>.<EXT>`.
+///
+///     3) L'extension <EXT> utilisée pour ce fichier de configuration est le
+///        `yml`. Cette extension peut être modifiée dans les paramètres de la
+///        configuration.
+pub fn fetch_config<O>(config_name: impl AsRef<str> + 'static, settings: &KernelSettings) -> std::io::Result<O>
+where
+	O: serde::de::DeserializeOwned,
+{
+	let filepath = match settings.process_mode {
+		| ProcessMode::LOCAL => String::from(config_name.as_ref()),
+		| ProcessMode::DEVELOPMENT => String::from("dev/{config_name}"),
+		| ProcessMode::PRODUCTION => String::from("prod/{config_name}"),
+		| ProcessMode::TEST => String::from("test/{config_name}"),
+	};
+
+	if let Some(config_directory) = settings.directory.config() {
+		lexa_fs::load(config_directory, filepath, settings.loader_extension)
+	} else {
+		Err(std::io::Error::new(
+			std::io::ErrorKind::NotFound,
+			"Le répertoire de configuration n'existe pas.",
+		))
 	}
 }

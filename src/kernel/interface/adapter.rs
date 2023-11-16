@@ -15,5 +15,23 @@
 pub trait ApplicationAdapterInterface
 	: Sized
 {
-	fn new() -> Self;
+	type Settings: ApplicationAdapterSettingsInterface;
+
+	fn new(settings: Self::Settings) -> Self;
+}
+
+pub trait ApplicationAdapterSettingsInterface
+	: serde::de::DeserializeOwned
+	+ Default
+{
+	const FILENAME: &'static str;
+}
+
+// -------------- //
+// Implémentation // -> Interface
+// -------------- //
+
+impl ApplicationAdapterSettingsInterface for ()
+{
+    const FILENAME: &'static str = "";
 }
