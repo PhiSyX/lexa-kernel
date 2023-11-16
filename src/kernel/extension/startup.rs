@@ -85,6 +85,8 @@ impl<A, E, C> Kernel<A, E, C>
 			"\tRépertoire des variables d'environnement: {:?}",
 			self.settings.directory.env()
 		);
+
+		println!();
 	}
 }
 

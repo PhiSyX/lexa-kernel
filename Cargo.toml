@@ -10,6 +10,7 @@ description = "Lexa Kernel Core Application"
 lexa-env = "=0.1.2"
 lexa-fs = { version = "=0.1.4" }
 lexa-logger = { version = "=0.3.0", features = ["serde"] }
+lexa-prompt = { version = "=0.1.4", features = ["serde"] }
 lexa-wildcard-matching = { version = "=0.1.0" }
 
 console = { version = "^0.15" }

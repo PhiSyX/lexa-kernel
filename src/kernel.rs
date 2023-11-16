@@ -33,7 +33,7 @@ pub struct Kernel<ApplicationAdapter, UserEnv = (), UserCLI = ()>
 	/// Application Adapter.
 	pub application_adapter: ApplicationAdapter,
 	/// Paramètres du kernel.
-	settings: KernelSettings,
+	pub settings: KernelSettings,
 	/// Les variables d'environnent.
 	env_vars: Option<UserEnv>,
 	/// Arguments de la CLI.
@@ -79,14 +79,11 @@ where
 
 	fn make_adapter(settings: &KernelSettings) -> ApplicationAdapter
 	{
-		let application_adapter_settings_filename = <
-			ApplicationAdapter::Settings as ApplicationAdapterSettingsInterface
-		>::FILENAME;
+		let application_adapter_settings_filename =
+			<ApplicationAdapter::Settings as ApplicationAdapterSettingsInterface>::FILENAME;
 
-		let application_adapter_settings = fetch_config(
-			application_adapter_settings_filename,
-			&settings,
-		).unwrap_or_default();
+		let application_adapter_settings =
+			fetch_config(application_adapter_settings_filename, &settings).unwrap_or_default();
 
 		ApplicationAdapter::new(application_adapter_settings)
 	}
@@ -129,6 +126,21 @@ impl<A, E, C> Kernel<A, E, C>
 	{
 		fetch_config(config_name, &self.settings)
 	}
+
+	/// Voir [fetch_config_or_prompt()]
+	pub fn fetch_config_or_prompt<O>(&self, config_name: impl AsRef<str> + 'static) -> std::io::Result<O>
+	where
+		O: std::fmt::Debug,
+		O: lexa_prompt::Prompt,
+		O: serde::ser::Serialize + serde::de::DeserializeOwned,
+	{
+		fetch_config_or_prompt(config_name, &self.settings)
+	}
+
+	pub fn signal(&self) -> &LoggerSignal
+	{
+		&self.logger_signal
+	}
 }
 
 // -------- //
@@ -166,6 +178,50 @@ where
 
 	if let Some(config_directory) = settings.directory.config() {
 		lexa_fs::load(config_directory, filepath, settings.loader_extension)
+	} else {
+		Err(std::io::Error::new(
+			std::io::ErrorKind::NotFound,
+			"Le répertoire de configuration n'existe pas.",
+		))
+	}
+}
+
+/// Désérialise un fichier de configuration situé dans son répertoire de
+/// configuration en une structure de données en fonction du mode d'exécution.
+///
+/// À savoir que **par défaut** :
+///
+///     1) Le répertoire de configuration se trouve à la racine du
+///     projet `config/`
+///
+///     2) Le fichier de configuration du logger se trouve dans :
+///
+///         2.1) En local : `config/<config_name>.<EXT>`.
+///         2.2) En dev   : `config/dev/<config_name>.<EXT>`.
+///         2.3) En prod  : `config/prod/<config_name>.<EXT>`.
+///         2.4) En test  : `config/test/<config_name>.<EXT>`.
+///
+///     3) L'extension <EXT> utilisée pour ce fichier de configuration est le
+///        `yml`. Cette extension peut être modifiée dans les paramètres de la
+///        configuration.
+pub fn fetch_config_or_prompt<O>(
+	config_name: impl AsRef<str> + 'static,
+	settings: &KernelSettings,
+) -> std::io::Result<O>
+where
+	O: std::fmt::Debug,
+	O: lexa_prompt::Prompt,
+	O: serde::ser::Serialize + serde::de::DeserializeOwned,
+{
+	let filepath = match settings.process_mode {
+		| ProcessMode::LOCAL => String::from(config_name.as_ref()),
+		| ProcessMode::DEVELOPMENT => String::from("dev/{config_name}"),
+		| ProcessMode::PRODUCTION => String::from("prod/{config_name}"),
+		| ProcessMode::TEST => String::from("test/{config_name}"),
+	};
+
+	if let Some(config_directory) = settings.directory.config() {
+		lexa_fs::load_or_prompt(config_directory, filepath, settings.loader_extension)
 	} else {
 		Err(std::io::Error::new(
 			std::io::ErrorKind::NotFound,

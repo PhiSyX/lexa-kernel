@@ -22,9 +22,9 @@ pub struct KernelSettings
 	pub directory: KernelSettingsDirectory,
 	/// Quelle extension doit-on utiliser pour lire les fichiers de
 	/// configuration.
-	pub(super) loader_extension: lexa_fs::Extension,
+	pub loader_extension: lexa_fs::Extension,
 	/// Mode d’exécution de l'application.
-	pub(super) process_mode: ProcessMode,
+	pub process_mode: ProcessMode,
 	/// Affiche les informations de l'application dès le démarrage?
 	pub(super) startup_info: bool,
 }

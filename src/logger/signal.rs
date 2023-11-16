@@ -27,7 +27,7 @@ pub(crate) type LoggerReaderHandle = (
 // Structure //
 // --------- //
 
-pub(crate) struct LoggerSignal(LoggerReaderHandle, LoggerWriter);
+pub struct LoggerSignal(LoggerReaderHandle, LoggerWriter);
 
 pub(crate) struct LoggerReader
 {
@@ -87,21 +87,23 @@ impl LoggerSignal
 	}
 
 	/// Émet une erreur.
-	pub(crate) fn send_error(&self, msg: impl ToString)
+	pub fn send_error(&self, msg: impl ToString)
 	{
 		self.1
 			.error
 			.send(msg.to_string())
 			.expect("Impossible de logger l'erreur");
+		std::thread::sleep(std::time::Duration::from_millis(16));
 	}
 
 	/// Émet un avertissement.
-	pub(crate) fn send_warning(&self, msg: impl ToString)
+	pub fn send_warning(&self, msg: impl ToString)
 	{
 		self.1
 			.warning
 			.send(msg.to_string())
 			.expect("Impossible de logger le warning");
+		std::thread::sleep(std::time::Duration::from_millis(16));
 	}
 }
 
