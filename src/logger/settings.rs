@@ -73,7 +73,7 @@ pub enum LoggerSettingsLevel
 impl LoggerSettings
 {
 	/// Nom du fichier de configuration du logger.
-	pub const CONFIG_FILENAME: &'static str = "logger";
+	pub const FILENAME: &'static str = "logger";
 }
 
 impl LoggerSettings

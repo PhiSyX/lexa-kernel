@@ -38,7 +38,7 @@ impl<A, E, C> ApplicationLoggerExtension for Kernel<A, E, C>
 {
 	fn initialize_logger(self) -> Self
 	{
-		let settings = match self.fetch_config(LoggerSettings::CONFIG_FILENAME) {
+		let settings = match self.fetch_config(LoggerSettings::FILENAME) {
 			| Ok(logger_settings) => logger_settings,
 			| Err(err) => {
 				_ = self.logger_signal.send_warning(format!(
