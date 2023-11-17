@@ -8,26 +8,31 @@
 // ┃  file, You can obtain one at https://mozilla.org/MPL/2.0/.                ┃
 // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-#![allow(async_fn_in_trait)]
+#[macro_export]
+macro_rules! using {
+	($($vis:vis $name:ident,)*) => {
+		$(mod $name ;)*
+		$($vis use self:: $name :: *;)*
+	};
 
-mod kernel;
-mod logger;
-mod macro_rules;
-pub mod process;
+	($($vis:vis $directory:ident / { $($name:ident,)* };)*) => {
+		$(
+			mod $directory {
+				$(mod $name ;)*
+				$(pub use self:: $name ::*;)*
+			}
+		)*
+		$($vis use self:: $directory ::*;)*
+	};
+}
 
-// ------ //
-// Export //
-// ------ //
+#[macro_export]
+macro_rules! public_using {
+	($($name:ident,)*) => {
+		$crate::using! { $(pub $name,)* }
+	};
 
-pub use lexa_fs::Extension as LoaderExtension;
-
-pub use self::kernel::error::KernelError;
-pub use self::kernel::extension::*;
-pub use self::kernel::interface::*;
-pub use self::kernel::Kernel;
-
-pub mod settings
-{
-	pub use super::kernel::settings::*;
-	pub use super::logger::settings::*;
+	($($directory:ident / { $($name:ident,)* };)*) => {
+		$crate::using! { $(pub $directory / { $($name,)* };)* }
+	};
 }
