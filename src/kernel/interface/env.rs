@@ -19,9 +19,18 @@ pub trait ApplicationEnvInterface
 	: Sized
 	+ Clone
 	+ Debug
+	+ serde::de::DeserializeOwned
 {
-	/// Initialise la [structure de champs nommés](Self).
-	fn vars(_: &crate::settings::KernelSettings) -> Self;
+	/// Nom du fichier d'environnement. Ce fichier DOIT se trouver dans le
+	/// répertoire des fichiers des variables d'environnement.
+	const FILENAME: &'static str;
+
+	/// Ajouter un suffixe au fichier d'environnement. Accès aux paramètres
+	/// du kernel.
+	fn with_suffix(_: &crate::settings::KernelSettings) -> impl ToString
+	{
+		return String::default();
+	}
 
 	/// Initialise la [structure de champs nommés](Self) en dé-sérialisant un
 	/// fichier d'environnement.

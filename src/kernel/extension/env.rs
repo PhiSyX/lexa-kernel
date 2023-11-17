@@ -69,9 +69,16 @@ where
 
 	fn include_env_vars(mut self) -> Self
 	{
-		let env_vars = UserEnv::vars(&self.settings);
+		let env_filepath = format!(
+			"{}{}",
+			UserEnv::FILENAME,
+			UserEnv::with_suffix(&self.settings).to_string(),
+		);
+		let env_vars = lexa_env::from_file(
+			self.settings.directory.env_sudo().join(env_filepath)
+		).ok();
 		log::debug!("Variables d'environnement de l'application « {:#?} »", &env_vars);
-		self.env_vars.replace(env_vars);
+		self.env_vars = env_vars;
 		self
 	}
 

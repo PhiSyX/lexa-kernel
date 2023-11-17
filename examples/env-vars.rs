@@ -41,13 +41,17 @@ pub struct ApplicationEnv
 
 impl ApplicationEnvInterface for ApplicationEnv
 {
-	fn vars(settings: &lexa_kernel::settings::KernelSettings) -> Self
-	{
-		Self::fetch_from_file(settings.directory.env_sudo().join(".env"))
-			.expect(
-				"\nImpossible de construire la structure ApplicationEnv\n\t",
-			)
-	}
+	const FILENAME: &'static str = ".env";
+
+	//fn with_suffix(settings: &lexa_kernel::settings::KernelSettings) -> impl ToString
+	//{
+	//	match settings.process_mode {
+	//		| lexa_kernel::process::ProcessMode::LOCAL => "",
+	//		| lexa_kernel::process::ProcessMode::DEVELOPMENT => "dev",
+	//		| lexa_kernel::process::ProcessMode::PRODUCTION => "prod",
+	//		| lexa_kernel::process::ProcessMode::TEST => "test",
+	//	}
+	//}
 }
 
 // ---- //
