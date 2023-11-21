@@ -17,7 +17,7 @@ macro_rules! using {
 
 	($($vis:vis $directory:ident / { $($name:ident,)* };)*) => {
 		$(
-			mod $directory {
+			$vis mod $directory {
 				$(mod $name ;)*
 				$(pub use self:: $name ::*;)*
 			}

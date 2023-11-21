@@ -86,6 +86,18 @@ impl LoggerSignal
 		self.send_warning("terminated");
 	}
 
+	/// Émet une erreur critique (cela quitte le programme après l'émission).
+	pub fn send_critical(&self, msg: impl ToString) -> !
+	{
+		self.1
+			.error
+			.send(msg.to_string())
+			.expect("Impossible de logger l'erreur");
+		std::thread::sleep(std::time::Duration::from_millis(16));
+		self.terminated();
+		std::process::exit(1)
+	}
+
 	/// Émet une erreur.
 	pub fn send_error(&self, msg: impl ToString)
 	{
