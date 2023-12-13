@@ -171,9 +171,9 @@ where
 {
 	let filepath = match settings.process_mode {
 		| ProcessMode::LOCAL => String::from(config_name.as_ref()),
-		| ProcessMode::DEVELOPMENT => String::from("dev/{config_name}"),
-		| ProcessMode::PRODUCTION => String::from("prod/{config_name}"),
-		| ProcessMode::TEST => String::from("test/{config_name}"),
+		| ProcessMode::DEVELOPMENT => format!("dev/{}", config_name.as_ref()),
+		| ProcessMode::PRODUCTION => format!("prod/{}", config_name.as_ref()),
+		| ProcessMode::TEST => format!("test/{}", config_name.as_ref()),
 	};
 
 	if let Some(config_directory) = settings.directory.config() {
@@ -215,9 +215,9 @@ where
 {
 	let filepath = match settings.process_mode {
 		| ProcessMode::LOCAL => String::from(config_name.as_ref()),
-		| ProcessMode::DEVELOPMENT => String::from("dev/{config_name}"),
-		| ProcessMode::PRODUCTION => String::from("prod/{config_name}"),
-		| ProcessMode::TEST => String::from("test/{config_name}"),
+		| ProcessMode::DEVELOPMENT => format!("dev/{}", config_name.as_ref()),
+		| ProcessMode::PRODUCTION => format!("prod/{}", config_name.as_ref()),
+		| ProcessMode::TEST => format!("test/{}", config_name.as_ref()),
 	};
 
 	if let Some(config_directory) = settings.directory.config() {
