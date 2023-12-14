@@ -23,15 +23,26 @@ pub trait ApplicationCLIExtension<UserCLI>
 where
 	UserCLI: ApplicationCLIInterface,
 {
-	/// Les arguments de CLI de l'application. En supposant qu'ils ont été
+	/// Les arguments de la CLI de l'application. En supposant qu'ils ont été
 	/// définie par la fonction d'implémentation
 	/// [ApplicationCLIExtension::include_cli_args()].
 	fn cli_args(&self) -> UserCLI;
 
-	/// Inclut les variables d'environnement de l'application à partir d'un
-	/// fichier d'environnement. Ce fichier est résolu en fonction du mode
-	/// d'exécution.
+	/// Inclut les arguments de la CLI.
 	fn include_cli_args(self) -> Self;
+}
+
+/// Interface adapter liée aux variables d'environnement.
+pub trait ApplicationAdapterCLIInterface
+	: Sized
+{
+	type CLI: ApplicationCLIInterface;
+
+	/// Les arguments de la CLI de l'application.
+	fn cli(&self) -> &Self::CLI;
+
+	/// Définit les arguments de la CLI de l'application pour l'adapter.
+	fn set_cli(&mut self, cli_args: Self::CLI);
 }
 
 // -------------- //
@@ -41,6 +52,7 @@ where
 impl<A, E, UserCLI> ApplicationCLIExtension<UserCLI> for Kernel<A, E, UserCLI>
 where
 	UserCLI: ApplicationCLIInterface,
+	A: ApplicationAdapterCLIInterface<CLI = UserCLI>,
 {
 	fn cli_args(&self) -> UserCLI
 	{
@@ -54,6 +66,7 @@ where
 	{
 		let arguments = UserCLI::arguments();
 		log::debug!("Arguments de la CLI de l'application « {:#?} »", &arguments);
+		self.application_adapter.set_cli(arguments.clone());
 		self.cli_args.replace(arguments);
 		self
 	}

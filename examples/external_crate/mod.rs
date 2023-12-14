@@ -9,22 +9,23 @@ use lexa_kernel::{
 	AsyncApplicationStartupExtension,
 };
 
-pub struct AnyApplicationAdapter<E = ()>
+pub struct AnyApplicationAdapter<E = (), C = ()>
 {
 	pub env: Option<E>,
+	pub cli: Option<C>,
 }
 
-impl<E> ApplicationAdapterInterface for AnyApplicationAdapter<E>
+impl<E, C> ApplicationAdapterInterface for AnyApplicationAdapter<E, C>
 {
 	type Settings = ();
 
 	fn new(_: Self::Settings) -> Self
 	{
-		Self { env: None }
+		Self { env: None, cli: None }
 	}
 }
 
-impl<E> ApplicationStartupExtension for AnyApplicationAdapter<E>
+impl<E, C> ApplicationStartupExtension for AnyApplicationAdapter<E, C>
 {
 	fn run(self)
 	{
@@ -32,7 +33,7 @@ impl<E> ApplicationStartupExtension for AnyApplicationAdapter<E>
 	}
 }
 
-impl<E> AsyncApplicationStartupExtension for AnyApplicationAdapter<E>
+impl<E, C> AsyncApplicationStartupExtension for AnyApplicationAdapter<E, C>
 {
 	async fn run(self)
 	{

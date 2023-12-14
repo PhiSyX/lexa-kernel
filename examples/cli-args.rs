@@ -8,6 +8,7 @@ mod external_crate;
 
 use external_crate::AnyApplicationAdapter;
 use lexa_kernel::{
+	ApplicationAdapterCLIInterface,
 	ApplicationCLIExtension,
 	ApplicationCLIInterface,
 	ApplicationStartupExtension,
@@ -25,8 +26,13 @@ const APPLICATION_ROOT_DIR: &'static str = env!("CARGO_MANIFEST_DIR");
 // Type //
 // ---- //
 
-type Application =
-	lexa_kernel::Kernel<AnyApplicationAdapter, (), ApplicationCLI>;
+type Application = lexa_kernel::Kernel<
+	// NOTE: dans la vraie vie, on n'a pas besoin de passer par des génériques.
+	// c'est uniquement pour l'exemple.
+	AnyApplicationAdapter<(), ApplicationCLI>,
+	(),
+	ApplicationCLI,
+>;
 
 // --------- //
 // Structure //
@@ -49,6 +55,22 @@ impl ApplicationCLIInterface for ApplicationCLI
 	}
 }
 
+impl<E> ApplicationAdapterCLIInterface
+	for AnyApplicationAdapter<E, ApplicationCLI>
+{
+	type CLI = ApplicationCLI;
+
+	fn cli(&self) -> &Self::CLI
+	{
+		self.cli.as_ref().unwrap()
+	}
+
+	fn set_cli(&mut self, cli_args: Self::CLI)
+	{
+		self.cli.replace(cli_args.clone());
+	}
+}
+
 // ---- //
 // Main //
 // ---- //
@@ -60,8 +82,7 @@ fn main()
 		APPLICATION_VERSION,
 		APPLICATION_ROOT_DIR,
 	)
-		.include_cli_args()
-	;
+	.include_cli_args();
 
 	dbg!(application.cli_args());
 
