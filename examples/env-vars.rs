@@ -7,6 +7,7 @@ mod external_crate;
 
 use external_crate::AnyApplicationAdapter;
 use lexa_kernel::{
+	ApplicationAdapterEnvInterface,
 	ApplicationEnvExtension,
 	ApplicationEnvInterface,
 	ApplicationStartupExtension,
@@ -16,7 +17,8 @@ use lexa_kernel::{
 // Type //
 // ---- //
 
-type Application = lexa_kernel::Kernel<AnyApplicationAdapter, ApplicationEnv>;
+type Application =
+	lexa_kernel::Kernel<AnyApplicationAdapter<ApplicationEnv>, ApplicationEnv>;
 
 // -------- //
 // Constant //
@@ -54,13 +56,27 @@ impl ApplicationEnvInterface for ApplicationEnv
 	//}
 }
 
+impl ApplicationAdapterEnvInterface for AnyApplicationAdapter<ApplicationEnv>
+{
+	type Env = ApplicationEnv;
+
+	fn env(&self) -> &Self::Env
+	{
+		self.env.as_ref().unwrap()
+	}
+
+	fn set_env(&mut self, env: Self::Env)
+	{
+		self.env.replace(env.clone());
+	}
+}
+
 // ---- //
 // Main //
 // ---- //
 
 fn main()
 {
-
 	let application = Application::new(
 		APPLICATION_NAME,
 		APPLICATION_VERSION,

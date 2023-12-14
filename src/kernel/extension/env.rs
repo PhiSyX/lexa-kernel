@@ -45,6 +45,19 @@ where
 		UserEnv: serde::de::DeserializeOwned;
 }
 
+/// Interface adapter liée aux variables d'environnement.
+pub trait ApplicationAdapterEnvInterface
+	: Sized
+{
+	type Env: ApplicationEnvInterface;
+
+	/// Les variables d'environnement de l'application.
+	fn env(&self) -> &Self::Env;
+
+	/// Définit les variables d'environnement de l'application pour l'adapter.
+	fn set_env(&mut self, env: Self::Env);
+}
+
 // -------------- //
 // Implémentation // -> Interface
 // -------------- //
@@ -52,6 +65,7 @@ where
 impl<A, UserEnv, C> ApplicationEnvExtension<UserEnv> for Kernel<A, UserEnv, C>
 where
 	UserEnv: ApplicationEnvInterface,
+	A: ApplicationAdapterEnvInterface<Env = UserEnv>,
 {
 	fn define_env_directory(mut self, dir: impl Into<std::path::PathBuf>) -> Self
 	{
@@ -67,19 +81,15 @@ where
 		)
 	}
 
-	fn include_env_vars(mut self) -> Self
+	fn include_env_vars(self) -> Self
 	{
 		let env_filepath = format!(
 			"{}{}",
 			UserEnv::FILENAME,
 			UserEnv::with_suffix(&self.settings).to_string(),
 		);
-		let env_vars = lexa_env::from_file(
-			self.settings.directory.env_sudo().join(env_filepath)
-		).ok();
-		log::debug!("Variables d'environnement de l'application « {:#?} »", &env_vars);
-		self.env_vars = env_vars;
-		self
+		let env_filepath = self.settings.directory.env_sudo().join(env_filepath);
+		self.with_env_vars(env_filepath)
 	}
 
 	fn with_env_vars(mut self, env_filepath: impl AsRef<std::path::Path>) -> Self
@@ -89,6 +99,7 @@ where
 		match UserEnv::fetch_from_file(&env_filepath) {
 			| Ok(env_vars) => {
 				log::debug!("Variables d'environnement de l'application « {:#?} »", &env_vars);
+				self.application_adapter.set_env(env_vars.clone());
 				self.env_vars.replace(env_vars);
 			}
 
