@@ -14,8 +14,8 @@ macro_rules! import {
 		$($vis mod $name;)*
 	};
 
-	($($vis:vis $directory:ident / { $($name:ident,)* };)*) => {
-		$($vis mod $directory { $($vis mod $name ;)* })*
+	($($vis:vis $directory:ident / { $($module_vis:vis $name:ident,)* };)*) => {
+		$($vis mod $directory { $($module_vis mod $name ;)* })*
 	}
 }
 
@@ -26,6 +26,6 @@ macro_rules! public_import {
 	};
 
 	($($directory:ident / { $($name:ident,)* };)*) => {
-		$crate::import! { $(pub $directory / { $($name,)* };)* }
+		$crate::import! { $(pub $directory / { $(pub $name,)* };)* }
 	}
 }

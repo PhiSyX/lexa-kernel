@@ -11,15 +11,15 @@
 #[macro_export]
 macro_rules! using {
 	($($vis:vis $name:ident,)*) => {
-		$(mod $name ;)*
+		$($vis mod $name ;)*
 		$($vis use self:: $name :: *;)*
 	};
 
-	($($vis:vis $directory:ident / { $($name:ident,)* };)*) => {
+	($($vis:vis $directory:ident / { $($module_vis:vis $name:ident,)* };)*) => {
 		$(
 			$vis mod $directory {
 				$(mod $name ;)*
-				$(pub use self:: $name ::*;)*
+				$($module_vis use self:: $name ::*;)*
 			}
 		)*
 		$($vis use self:: $directory ::*;)*
@@ -33,6 +33,6 @@ macro_rules! public_using {
 	};
 
 	($($directory:ident / { $($name:ident,)* };)*) => {
-		$crate::using! { $(pub $directory / { $($name,)* };)* }
+		$crate::using! { $(pub $directory / { $( pub $name,)* };)* }
 	};
 }
