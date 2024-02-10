@@ -6,10 +6,13 @@ license = "MPL-2.0"
 repository = "https://github.com/PhiSyX/lexa-kernel"
 description = "Lexa Kernel Core Application"
 
+[features]
+tracing = ["lexa-logger/tracing"]
+
 [dependencies]
 lexa-env = "=0.1.2"
 lexa-fs = { version = "=0.1.4" }
-lexa-logger = { version = "=0.3.0", features = ["serde"] }
+lexa-logger = { version = "=0.3.1", features = ["serde"] }
 lexa-prompt = { version = "=0.1.4", features = ["serde"] }
 lexa-wildcard-matching = { version = "=0.1.0" }
 
