@@ -7,20 +7,21 @@ repository = "https://github.com/PhiSyX/lexa-kernel"
 description = "Lexa Kernel Core Application"
 
 [features]
-tracing = ["lexa-logger/tracing"]
+tracing = ["lexa-logger/tracing", "dep:tracing"]
 
 [dependencies]
 lexa-env = "=0.1.2"
 lexa-fs = { version = "=0.1.4" }
-lexa-logger = { version = "=0.3.1", features = ["serde"] }
+lexa-logger = { version = "=0.3.2", features = ["serde"] }
 lexa-prompt = { version = "=0.1.4", features = ["serde"] }
 lexa-wildcard-matching = { version = "=0.1.0" }
 
-console = { version = "^0.15" }
+console = { version = "^0.15.8" }
 log = { version = "^0.4.20" }
-serde = { version = "1.0.192", features = ["derive"] }
-thiserror = { version = "1.0.50" }
+serde = { version = "^1.0.192", features = ["derive"] }
+thiserror = { version = "^1.0.50" }
+tracing = { version = "^0.1.40", optional = true }
 
 [dev-dependencies]
-clap = { version = "4.4.8", features = ["derive"] }
+clap = { version = "^4.5", features = ["derive"] }
 tokio = { version = "^1.34.0", features = ["macros", "rt-multi-thread"] }

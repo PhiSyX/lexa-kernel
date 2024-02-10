@@ -10,6 +10,20 @@
 
 use lexa_logger::LoggerBuilder;
 
+// ---- //
+// Type //
+// ---- //
+
+#[cfg(not(feature = "tracing"))]
+pub type LoggerFilter = log::LevelFilter;
+#[cfg(feature = "tracing")]
+pub type LoggerFilter = tracing::level_filters::LevelFilter;
+
+#[cfg(not(feature = "tracing"))]
+pub type LoggerBuilderError = log::SetLoggerError;
+#[cfg(feature = "tracing")]
+pub type LoggerBuilderError = &'static str;
+
 // --------- //
 // Structure //
 // --------- //
@@ -78,8 +92,8 @@ impl LoggerSettings
 
 impl LoggerSettings
 {
-	pub fn make_builder(&self, level: impl Into<log::LevelFilter>)
-		-> Result<(), log::SetLoggerError>
+	pub fn make_builder(&self, level: impl Into<LoggerFilter>)
+		-> Result<(), LoggerBuilderError>
 	{
 		let mut builder = match self.preset {
 			| LoggerSettingsPreset::Default => {
@@ -158,6 +172,21 @@ impl From<LoggerSettingsLevel> for log::LevelFilter
 			| LoggerSettingsLevel::INFO => Self::Info,
 			| LoggerSettingsLevel::TRACE => Self::Trace,
 			| LoggerSettingsLevel::WARNING => Self::Warn,
+		}
+	}
+}
+
+#[cfg(feature = "tracing")]
+impl From<LoggerSettingsLevel> for tracing::level_filters::LevelFilter
+{
+	fn from(level: LoggerSettingsLevel) -> Self
+	{
+		match level {
+			| LoggerSettingsLevel::DEBUG => Self::DEBUG,
+			| LoggerSettingsLevel::ERROR => Self::ERROR,
+			| LoggerSettingsLevel::INFO => Self::INFO,
+			| LoggerSettingsLevel::TRACE => Self::TRACE,
+			| LoggerSettingsLevel::WARNING => Self::WARN,
 		}
 	}
 }

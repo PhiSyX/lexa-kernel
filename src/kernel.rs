@@ -83,7 +83,7 @@ where
 			<ApplicationAdapter::Settings as ApplicationAdapterSettingsInterface>::FILENAME;
 
 		let application_adapter_settings =
-			fetch_config(application_adapter_settings_filename, &settings).unwrap_or_default();
+			fetch_config(application_adapter_settings_filename, settings).unwrap_or_default();
 
 		ApplicationAdapter::new(application_adapter_settings)
 	}

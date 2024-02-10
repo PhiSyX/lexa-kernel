@@ -27,7 +27,7 @@ pub(crate) type LoggerReaderHandle = (
 // Structure //
 // --------- //
 
-pub struct LoggerSignal(LoggerReaderHandle, LoggerWriter);
+pub struct LoggerSignal(pub LoggerReaderHandle, LoggerWriter);
 
 pub(crate) struct LoggerReader
 {

@@ -41,9 +41,8 @@ impl<A, E, C> ApplicationLoggerExtension for Kernel<A, E, C>
 		let settings = match self.fetch_config(LoggerSettings::FILENAME) {
 			| Ok(logger_settings) => logger_settings,
 			| Err(err) => {
-				_ = self.logger_signal.send_warning(format!(
-					"Le fichier de configuration du logger n'a pas pu être \
-					 chargé correctement.\nRaison « {err} ». \
+				self.logger_signal.send_warning(format!(
+					"Le fichier de configuration du logger n'a pas pu être chargé correctement.\nRaison « {err} ». \
 					 \nLes paramètres par défaut du logger ont été appliqués.",
 				));
 
@@ -61,6 +60,7 @@ impl<A, E, C> ApplicationLoggerExtension for Kernel<A, E, C>
 	{
 		let settings = settings.into();
 
+		#[cfg(not(feature = "tracing"))]
 		let level_based_on_process_mode = match self.settings.process_mode {
 			| ProcessMode::LOCAL => lexa_logger::LevelFilter::Debug,
 			| ProcessMode::DEVELOPMENT => lexa_logger::LevelFilter::Debug,
@@ -68,9 +68,16 @@ impl<A, E, C> ApplicationLoggerExtension for Kernel<A, E, C>
 			| ProcessMode::TEST => lexa_logger::LevelFilter::Trace,
 		};
 
+		#[cfg(feature = "tracing")]
+		let level_based_on_process_mode = match self.settings.process_mode {
+			| ProcessMode::LOCAL => tracing::level_filters::LevelFilter::DEBUG,
+			| ProcessMode::DEVELOPMENT => tracing::level_filters::LevelFilter::DEBUG,
+			| ProcessMode::PRODUCTION => tracing::level_filters::LevelFilter::ERROR,
+			| ProcessMode::TEST => tracing::level_filters::LevelFilter::TRACE,
+		};
+
 		if let Err(err) = settings.make_builder(level_based_on_process_mode) {
-			_ = self
-				.logger_signal
+			self.logger_signal
 				.send_error(format!("Erreur liée au logger. Raison « {err} »"));
 			return self;
 		}

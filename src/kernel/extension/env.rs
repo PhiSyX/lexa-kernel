@@ -106,7 +106,7 @@ where
 			| Err(err) => {
 				let ef_s = env_filepath.as_ref().display();
 				let err_s = format!("Erreur liée aux variables d'environnement « {ef_s} » : {err}");
-				_ = self.logger_signal.send_error(err_s);
+				self.logger_signal.send_error(err_s);
 			}
 		};
 

@@ -29,7 +29,7 @@ pub trait ApplicationEnvInterface
 	/// du kernel.
 	fn with_suffix(_: &crate::settings::KernelSettings) -> impl ToString
 	{
-		return String::default();
+		String::default()
 	}
 
 	/// Initialise la [structure de champs nommés](Self) en dé-sérialisant un
